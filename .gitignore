@@ -1,3 +1,8 @@
 node_modules/
-assets/
 script.md
+
+# ignore all assets except required water texture
+assets/*
+!assets/textures/
+assets/textures/*
+!assets/textures/waternormals.jpg
