@@ -173,10 +173,8 @@ async function populateMapList() {
       opt.textContent = f.replace(/\.glb$/i, '').replace(/\.gltf$/i, '');
       mapSelect.appendChild(opt);
     });
-    const defaultMap = maps.find(f => /^gm_construct\.(glb|gltf)$/i.test(f))
-      || maps[0] || '__physics_test__';
-    mapSelect.value = defaultMap;
-    loadMap(defaultMap);
+    mapSelect.value = '__physics_test__';
+    loadMap('__physics_test__');
   } catch {
     statusEl.textContent = 'Could not scan maps folder';
   }
