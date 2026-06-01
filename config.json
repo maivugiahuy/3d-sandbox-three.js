@@ -1,0 +1,70 @@
+{
+  "player": {
+    "moveSpeed": 12,
+    "sprintMultiplier": 1.5,
+    "jumpSpeed": 18,
+    "flySpeed": 20,
+    "fov": 75,
+    "capsuleRadius": 0.35,
+    "capsuleHalfHeight": 0.5,
+    "eyeOffset": 0.6,
+    "maxStepHeight": 0.35,
+    "coyoteTime": 0.12,
+    "jumpBuffer": 0.12,
+    "maxSlopeClimb": 45,
+    "minSlopeSlide": 30,
+    "controllerSkinWidth": 0.02,
+    "autostepMinWidth": 0.1,
+    "snapToGroundDist": 0.05
+  },
+  "physics": {
+    "gravity": 60
+  },
+  "gravityGun": {
+    "pickRange": 25,
+    "holdDistMin": 1.0,
+    "holdDistMax": 15.0,
+    "holdSpring": 300,
+    "holdDamping": 31,
+    "holdMaxVel": 20,
+    "launchSpeed": 60,
+    "translateSensitivity": { "x": 0.01, "y": 0.01, "z": 0.003 },
+    "rotateSensitivity": { "x": 0.005, "y": 0.005, "z": 0.001 },
+    "scaleSensitivity": { "x": 0.005, "y": 0.005, "z": 0.001 },
+    "scaleMin": 0.2,
+    "scaleMax": 5.0
+  },
+  "environment": {
+    "sunElevation": 55,
+    "sunAzimuth": 235,
+    "turbidity": 5,
+    "rayleigh": 0.5,
+    "mieCoefficient": 0.0005,
+    "mieDirectionalG": 0.99,
+    "exposure": 0.5,
+    "fogColor": "0x88bbee",
+    "fogNear": 200,
+    "fogFar": 2000,
+    "sunIntensity": 4,
+    "hemisphereIntensity": 2,
+    "shadowMapSize": 2048,
+    "shadowBias": 0,
+    "shadowNormalBias": 0.02,
+    "shadowCameraNear": 0.5,
+    "shadowCameraFar": 2000,
+    "shadowCameraSize": 20
+  },
+  "water": {
+    "y": -3.048,
+    "distortionScale": 0.15,
+    "textureSize": 2048,
+    "poolSize": { "width": 93.9, "height": 85.3 },
+    "poolPosition": { "x": -11.55, "z": -80.45 },
+    "poolBounds": {
+      "xMin": -58.5,
+      "xMax": 35.4,
+      "zMin": -123.1,
+      "zMax": -37.8
+    }
+  }
+}

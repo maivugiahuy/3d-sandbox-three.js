@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>3D Sandbox — three.js</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #000; color: #ddd; font-family: system-ui, sans-serif; overflow: hidden; }
+  #overlay {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    background: rgba(0,0,0,0.72); z-index: 10; cursor: pointer; padding: 20px; overflow-y: auto;
+  }
+  #overlay-inner { max-width: 640px; width: 100%; font: 12px/1.6 ui-monospace, monospace; color: #ccc; }
+  #overlay h1 { margin: 0 0 4px; font-size: 20px; color: #fff; text-align: center; letter-spacing: 0.05em; }
+  #overlay .click-hint { text-align: center; color: #ffe066; margin: 0 0 14px; font-size: 13px; }
+  #overlay .section-title {
+    color: #9cf; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+    border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 3px; margin: 12px 0 6px;
+  }
+  #overlay .key-grid { display: grid; grid-template-columns: 110px 1fr; gap: 2px 10px; }
+  #overlay .key { color: #ffe066; }
+  #overlay .desc { color: #aaa; }
+  #overlay .mode-grid {
+    display: grid; grid-template-columns: 90px 1fr; gap: 4px 10px;
+  }
+  #overlay .mode-name { color: #ff9; font-weight: bold; }
+  #overlay .mode-desc { color: #999; }
+  #overlay .mode-desc span { color: #ffe066; }
+  #overlay p#status { text-align: center; color: #888; margin-top: 14px; font-size: 11px; }
+  #hud {
+    position: absolute; top: 8px; left: 10px; z-index: 5;
+    font: 12px/1.4 ui-monospace, monospace; color: #9f9; text-shadow: 0 0 3px #000;
+    pointer-events: none;
+  }
+  #modelist {
+    position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+    z-index: 5; font: 11px/2 ui-monospace, monospace;
+    text-shadow: 0 0 4px #000; pointer-events: none; text-align: right;
+  }
+  .ml-item { color: #aa8800; }
+  .ml-item.ml-active { color: #ffe066; font-size: 13px; }
+  #crosshair {
+    position: absolute; top: 50%; left: 50%; width: 6px; height: 6px; margin: -3px 0 0 -3px;
+    background: #fff; border-radius: 50%; opacity: 0.7; pointer-events: none; z-index: 5;
+  }
+  #spawnmenu {
+    display: none; position: absolute; inset: 0; align-items: center; justify-content: center;
+    z-index: 6; pointer-events: none;
+  }
+  #spawnmenu-inner {
+    background: rgba(0,0,0,0.78); border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 8px; padding: 14px 22px; min-width: 220px;
+    font: 13px/1.6 ui-monospace, monospace; color: #ddd;
+  }
+  #spawnmenu-title {
+    color: #ff9; font-size: 11px; letter-spacing: 0.1em; margin-bottom: 8px; text-align: center;
+  }
+  #spawnmenu-list { max-height: 400px; overflow-y: auto; }
+  .spawn-item { padding: 1px 0; white-space: pre; color: #ccc; }
+  .spawn-item.sel { color: #ffe066; }
+  .spawn-separator { color: #666; font-size: 10px; letter-spacing: 0.1em; padding: 6px 0 2px; text-align: center; }
+  #spawnmenu-hint {
+    margin-top: 10px; font-size: 10px; color: #888; text-align: center;
+  }
+  #configmenu {
+    display: none; position: absolute; bottom: 16px; right: 16px;
+    z-index: 11; background: rgba(0,0,0,0.82);
+    border: 1px solid rgba(255,255,255,0.15); border-radius: 8px;
+    padding: 12px 16px; min-width: 300px;
+    font: 12px/1.5 ui-monospace, monospace; color: #ddd;
+    pointer-events: all;
+  }
+  #configmenu-title {
+    color: #9cf; font-size: 11px; letter-spacing: 0.08em;
+    margin-bottom: 10px; text-align: center; text-transform: uppercase;
+  }
+  .cfg-row { display: flex; align-items: center; gap: 8px; margin: 5px 0; }
+  .cfg-lbl { flex: 0 0 110px; color: #aaa; font-size: 11px; }
+  .cfg-row input[type=range] {
+    flex: 1; height: 4px; cursor: pointer; accent-color: #7ef;
+  }
+  .cfg-val { flex: 0 0 52px; text-align: right; color: #7ef; font-size: 11px; }
+  .cfg-empty { color: #666; font-size: 11px; text-align: center; padding: 4px 0; }
+  #configmenu-hint { margin-top: 10px; font-size: 10px; color: #666; text-align: center; }
+  .paint-tabs { display: flex; gap: 6px; margin-bottom: 10px; }
+  .paint-tab {
+    flex: 1; padding: 4px 0; background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.15); border-radius: 4px;
+    color: #888; font: 11px ui-monospace,monospace; cursor: pointer; letter-spacing: 0.05em;
+  }
+  .paint-tab.active { background: rgba(100,180,255,0.18); color: #9cf; border-color: #9cf; }
+  .paint-color-in { width: 60px; height: 28px; border: none; padding: 0; cursor: pointer; background: none; }
+  .tex-list { max-height: 160px; overflow-y: auto; margin-top: 4px; }
+  .tex-item {
+    padding: 4px 6px; color: #bbb; font-size: 11px; cursor: pointer;
+    border-radius: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .tex-item:hover { background: rgba(255,255,255,0.08); color: #eee; }
+  .tex-item.sel { background: rgba(100,180,255,0.18); color: #9cf; }
+  .cfg-btn {
+    width: 100%; padding: 5px 0; margin: 3px 0; display: block;
+    background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 4px; color: #ccc; font: 11px ui-monospace,monospace;
+    cursor: pointer; letter-spacing: 0.05em;
+  }
+  .cfg-btn:hover { background: rgba(255,255,255,0.13); color: #fff; }
+  .cfg-btn-active { background: rgba(100,255,100,0.15) !important; color: #9f9 !important; border-color: #9f9 !important; }
+  #map-select {
+    background: rgba(0,0,0,0.6); color: #ffe066; border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 4px; padding: 4px 8px; font: 12px ui-monospace, monospace;
+    cursor: pointer; min-width: 180px;
+  }
+  #map-select:focus { outline: 1px solid #9cf; }
+</style>
+</head>
+<body>
+  <div id="overlay">
+    <div id="overlay-inner">
+      <h1>3D Sandbox</h1>
+      <p class="click-hint">▶ Click to play</p>
+
+      <div class="section-title">Movement</div>
+      <div class="key-grid">
+        <span class="key">WASD</span>         <span class="desc">Move</span>
+        <span class="key">Mouse</span>        <span class="desc">Look</span>
+        <span class="key">Space</span>        <span class="desc">Jump (coyote time + buffer)</span>
+        <span class="key">Shift</span>        <span class="desc">Sprint</span>
+        <span class="key">Esc</span>          <span class="desc">Release cursor</span>
+      </div>
+
+      <div class="section-title">General</div>
+      <div class="key-grid">
+        <span class="key">Scroll</span>       <span class="desc">Cycle mode (when not holding)</span>
+        <span class="key">Q hold</span>       <span class="desc">Open spawn menu — scroll to pick, release to spawn</span>
+        <span class="key">V</span>            <span class="desc">Toggle fly mode (Space up · Ctrl down · no gravity/collision)</span>
+        <span class="key">Z</span>            <span class="desc">Undo last action</span>
+        <span class="key">Alt (menu)</span>   <span class="desc">Unlock cursor to drag sliders</span>
+      </div>
+
+      <div class="section-title">Modes  <span style="color:#666;font-size:10px;letter-spacing:0">(scroll to cycle · right side shows current)</span></div>
+      <div class="mode-grid">
+        <span class="mode-name">FREEZE</span>
+        <span class="mode-desc"><span>M1</span> grab · <span>M2</span> toggle freeze / unfreeze · <span>Scroll</span> adjust hold distance</span>
+
+        <span class="mode-name">SHOOT</span>
+        <span class="mode-desc"><span>M1</span> grab · <span>M2</span> launch at high speed · <span>Scroll</span> adjust hold distance</span>
+
+        <span class="mode-name">TRANSLATE</span>
+        <span class="mode-desc"><span>M1</span> select · slider panel opens — <span>Alt</span> + drag X Y Z to reposition · release drops and commits</span>
+
+        <span class="mode-name">ROTATE</span>
+        <span class="mode-desc"><span>M1</span> select · slider panel opens — <span>Alt</span> + drag X Y Z to rotate · <span>M1</span> again to deselect</span>
+
+        <span class="mode-name">SCALE</span>
+        <span class="mode-desc"><span>M1</span> select · slider panel opens — <span>Alt</span> + drag X Y Z to scale per-axis · <span>M1</span> again to deselect</span>
+
+        <span class="mode-name">PAINT</span>
+        <span class="mode-desc"><span>M1</span> select · color picker or texture list opens · pick and apply in real-time</span>
+
+        <span class="mode-name">SUN</span>
+        <span class="mode-desc">Elevation + azimuth sliders open automatically · <span>Alt</span> + drag to adjust</span>
+
+        <span class="mode-name">ANIMATE</span>
+        <span class="mode-desc"><span>M1</span> select · <b>PRESET</b>: toggle Spin / Bob / Orbit · <b>RECORD</b>: record keyframes, play loop</span>
+
+      </div>
+
+      <div class="section-title">Map</div>
+      <div style="text-align:center;margin-bottom:8px;">
+        <select id="map-select"></select>
+      </div>
+
+      <p id="status">Loading map…</p>
+    </div>
+  </div>
+  <div id="crosshair"></div>
+  <div id="hud"></div>
+  <div id="modelist"></div>
+  <div id="configmenu">
+    <div id="configmenu-title"></div>
+    <div id="configmenu-list"></div>
+    <div id="configmenu-hint">hold Alt · drag sliders · click away to close</div>
+  </div>
+  <div id="spawnmenu">
+    <div id="spawnmenu-inner">
+      <div id="spawnmenu-title">— SPAWN MENU —</div>
+      <div id="spawnmenu-list"></div>
+      <div id="spawnmenu-hint">scroll to select · release Q to spawn</div>
+    </div>
+  </div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "./node_modules/three/build/three.module.js",
+    "three/addons/": "./node_modules/three/examples/jsm/",
+    "@dimforge/rapier3d-compat": "./node_modules/@dimforge/rapier3d-compat/rapier.es.js"
+  }
+}
+</script>
+
+<script type="module" src="src/main.js"></script>
+</body>
+</html>
